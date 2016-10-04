@@ -506,7 +506,7 @@ class GnomeModule:
         known_custom_target_kwargs = ['install', 'install_dir', 'build_always',
                                       'depends', 'depend_files']
         c_template = h_template = None
-        install_header = False
+        install_flag = False
         for arg, value in kwargs.items():
             if arg == 'sources':
                 sources = [value] + sources
@@ -514,8 +514,8 @@ class GnomeModule:
                 c_template = value
             elif arg == 'h_template':
                 h_template = value
-            elif arg == 'install_header':
-                install_header = value
+            elif arg == 'install':
+                install_flag = value
             elif arg in known_kwargs:
                 cmd += ['--' + arg.replace('_', '-'), value]
             elif arg not in known_custom_target_kwargs:
@@ -535,7 +535,7 @@ class GnomeModule:
             # so --template consumes it.
             h_cmd = cmd + ['--template', '@INPUT@']
             h_sources = [h_template] + sources
-            custom_kwargs['install'] = install_header
+            custom_kwargs['install'] = install_flag
             if 'install_dir' not in custom_kwargs:
                 custom_kwargs['install_dir'] = \
                     state.environment.coredata.get_builtin_option('includedir')
@@ -564,10 +564,9 @@ class GnomeModule:
 
         if c_template is None and h_template is None:
             generic_cmd = cmd + ['@INPUT@']
-            custom_kwargs['install'] = install_header
-            if 'install_dir' not in custom_kwargs:
-                custom_kwargs['install_dir'] = \
-                    state.environment.coredata.get_builtin_option('includedir')
+            custom_kwargs['install'] = install_flag
+            if install_flag and 'install_dir' not in custom_kwargs:
+                raise InvalidArguments('Missing keyword argument install_dir.')
             target = self.make_mkenum_custom_target(state, sources, basename,
                                                     generic_cmd, custom_kwargs)
             return target

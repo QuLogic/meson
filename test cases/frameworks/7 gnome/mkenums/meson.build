@@ -4,7 +4,7 @@ myenums = gnome.mkenums('abc1',
   sources : 'meson-sample.h',
   h_template : 'enums.h.in',
   c_template : 'enums.c.in',
-  install_header : true,
+  install : true,
   install_dir : get_option('includedir'))
 
 enums_c1 = myenums[0]
@@ -27,7 +27,7 @@ enums_h2 = gnome.mkenums('abc2',
   sources : 'meson-sample.h',
   h_template : 'enums2.h.in',
   ftail : '/* trailing header file info */',
-  install_header : true,
+  install : true,
   install_dir : get_option('includedir'))
 
 enums_c2 = gnome.mkenums('abc2',
@@ -35,7 +35,7 @@ enums_c2 = gnome.mkenums('abc2',
   depends : enums_h2,
   c_template : 'enums2.c.in',
   ftail : '/* trailing source file info */',
-  install_header : true,
+  install : true,  # This does nothing for c_template.
   install_dir : get_option('includedir'))
 
 conf = configuration_data()
@@ -73,7 +73,7 @@ G_END_DECLS
 
 #endif /* MESON_ENUMS_H */
 ''',
-  install_header : true,
+  install : true,
   install_dir : get_option('includedir'))
 
 enums_c3 = gnome.mkenums('enums3.c',
