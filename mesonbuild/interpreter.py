@@ -1767,6 +1767,7 @@ class Interpreter(InterpreterBase):
         required = kwargs.get('required', True)
         if not isinstance(required, bool):
             raise InvalidArguments('"required" argument must be a boolean.')
+        want_cross = not kwargs.get('native', False)
         # Search for scripts relative to current subdir.
         # Do not cache found programs because find_program('foobar')
         # might give different results when run from different source dirs.
@@ -1786,7 +1787,7 @@ class Interpreter(InterpreterBase):
                 raise InvalidArguments('find_program only accepts strings and '
                                        'files, not {!r}'.format(exename))
 
-            if isinstance(exename, str) and self.environment.is_cross_build():
+            if isinstance(exename, str) and self.environment.is_cross_build() and want_cross:
                 extprog = self.environment.cross_info.config.get('binaries', {}).get(exename, None)
                 if extprog is not None:
                     extprog = dependencies.ExternalProgram(extprog, search_dir=search_dir)

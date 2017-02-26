@@ -14,11 +14,11 @@ class ExtensionModule:
         return funcname in self.snippets
 
 
-def find_program(program_name, target_name, environment):
+def find_program(program_name, target_name, environment, want_cross):
     if program_name in _found_programs:
         return _found_programs[program_name]
 
-    if environment.is_cross_build():
+    if environment.is_cross_build() and want_cross:
         program = environment.cross_info.config.get('binaries', {}).get(program_name, None)
         if program is not None:
             program = dependencies.ExternalProgram(program)

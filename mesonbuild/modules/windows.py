@@ -32,6 +32,7 @@ class WindowsModule(ExtensionModule):
     def compile_resources(self, state, args, kwargs):
         comp = self.detect_compiler(state.compilers)
 
+        want_cross = not kwargs.get('native', False)
         extra_args = mesonlib.stringlistify(kwargs.get('args', []))
         inc_dirs = kwargs.pop('include_directories', [])
         if not isinstance(inc_dirs, list):
@@ -49,7 +50,7 @@ class WindowsModule(ExtensionModule):
             # Pick-up env var WINDRES if set. This is often used for specifying
             # an arch-specific windres.
             rescomp_name = os.environ.get('WINDRES', 'windres')
-            rescomp = find_program(rescomp_name, 'resources', state.environment)
+            rescomp = find_program(rescomp_name, 'resources', state.environment, want_cross)
             res_args = extra_args + ['@INPUT@', '@OUTPUT@']
             suffix = 'o'
         if not rescomp.found():
