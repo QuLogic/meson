@@ -82,6 +82,7 @@ class Backend:
     def __init__(self, build):
         self.build = build
         self.environment = build.environment
+        self.basic_compiler_arg_cache = {}
         self.processed_targets = {}
         self.build_to_src = os.path.relpath(self.environment.get_source_dir(),
                                             self.environment.get_build_dir())
@@ -333,15 +334,13 @@ class Backend:
                 extra_args.append(arg)
         return extra_args
 
-    def generate_basic_compiler_args(self, target, compiler, no_warn_args=False):
+    def _generate_basic_compiler_args(self, subproject, compiler, no_warn_args):
         # Create an empty commands list, and start adding arguments from
         # various sources in the order in which they must override each other
         # starting from hard-coded defaults followed by build options and so on.
         commands = CompilerArgs(compiler)
         # First, the trivial ones that are impossible to override.
         #
-        # Add -nostdinc/-nostdinc++ if needed; can't be overriden
-        commands += self.get_cross_stdlib_args(target, compiler)
         # Add things like /NOLOGO or -pipe; usually can't be overriden
         commands += compiler.get_always_args()
         # Only add warning-flags by default if the buildtype enables it, and if
@@ -362,13 +361,25 @@ class Backend:
         # Add buildtype args: optimization level, debugging, etc.
         commands += compiler.get_buildtype_args(self.environment.coredata.get_builtin_option('buildtype'))
         # Add compile args added using add_project_arguments()
-        commands += self.build.get_project_args(compiler, target.subproject)
+        commands += self.build.get_project_args(compiler, subproject)
         # Add compile args added using add_global_arguments()
         # These override per-project arguments
         commands += self.build.get_global_args(compiler)
         # Compile args added from the env: CFLAGS/CXXFLAGS, etc. We want these
         # to override all the defaults, but not the per-target compile args.
         commands += self.environment.coredata.external_args[compiler.get_language()]
+        return commands
+
+    def generate_basic_compiler_args(self, target, compiler, no_warn_args=False):
+        key = (target.subproject, compiler, no_warn_args)
+        if key in self.basic_compiler_arg_cache:
+            commands = self.basic_compiler_arg_cache[key]
+        else:
+            commands = self._generate_basic_compiler_args(target.subproject, compiler, no_warn_args)
+            self.basic_compiler_arg_cache[key] = commands
+        commands = CompilerArgs(commands.compiler, commands)
+        # Add -nostdinc/-nostdinc++ if needed; can't be overriden
+        commands += self.get_cross_stdlib_args(target, compiler)
         # Always set -fPIC for shared libraries
         if isinstance(target, build.SharedLibrary):
             commands += compiler.get_pic_args()
