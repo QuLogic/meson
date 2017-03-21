@@ -447,7 +447,9 @@ class CompilerArgs(list):
         and while preserving the order of arguments as much as possible
         '''
         pre = []
+        pre_set = set()
         post = []
+        post_set = set()
         if not isinstance(args, list):
             raise TypeError('can only concatenate list (not "{}") to list'.format(args))
         for arg in args:
@@ -457,20 +459,24 @@ class CompilerArgs(list):
             dedup = self._can_dedup(arg)
             if dedup == 1:
                 # Argument already exists and adding a new instance is useless
-                if arg in self or arg in pre or arg in post:
+                if arg in self or arg in pre_set or arg in post_set:
                     continue
             if dedup == 2:
                 # Remove all previous occurances of the arg and add it anew
                 if arg in self:
                     self.remove(arg)
-                if arg in pre:
+                if arg in pre_set:
                     pre.remove(arg)
-                if arg in post:
+                    pre_set.remove(arg)
+                if arg in post_set:
                     post.remove(arg)
+                    post_set.remove(arg)
             if self._should_prepend(arg):
                 pre.append(arg)
+                pre_set.add(arg)
             else:
                 post.append(arg)
+                post_set.add(arg)
         # Insert at the beginning
         self[:0] = pre
         # Append to the end
