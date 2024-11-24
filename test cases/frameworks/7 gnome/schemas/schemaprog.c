@@ -8,12 +8,9 @@ int main(int argc, char **argv) {
     GSettings *settings;
     GVariant *value;
 
-    GError *error = NULL;
-    src = g_settings_schema_source_new_from_directory("schemas",
-            g_settings_schema_source_get_default(), TRUE, &error);
-    if(error) {
-        fprintf(stderr, "Fail: %s\n", error->message);
-        g_error_free(error);
+    src = g_settings_schema_source_get_default();
+    if(src == NULL) {
+        fprintf(stderr, "Failed to get default schema source\n");
         return 1;
     }
 
@@ -42,6 +39,6 @@ int main(int argc, char **argv) {
     g_variant_unref(value);
     g_object_unref(settings);
     g_settings_schema_unref(schema);
-    g_settings_schema_source_unref(src);
+    fprintf(stderr, "EVERYTHING WORKED!!\n");
     return 0;
 }

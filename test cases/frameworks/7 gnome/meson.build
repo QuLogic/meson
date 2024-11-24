@@ -10,11 +10,6 @@ if not glib.found()
   error('MESON_SKIP_TEST glib not found.')
 endif
 
-gir = dependency('gobject-introspection-1.0', required: false)
-if not gir.found()
-  error('MESON_SKIP_TEST gobject-introspection not found.')
-endif
-
 python3 = import('python3')
 py3 = python3.find_python()
 if run_command(py3, '-c', 'import gi;', check: false).returncode() != 0
@@ -45,28 +40,15 @@ endif
 
 gnome = import('gnome')
 gio = dependency('gio-2.0')
-giounix = dependency('gio-unix-2.0')
 glib = dependency('glib-2.0')
 gobj = dependency('gobject-2.0')
-gir = dependency('gobject-introspection-1.0')
 gmod = dependency('gmodule-2.0')
-
-# GLib >= 2.76 removed slice allocator which causes a leak in g-i to now be
-# visible to asan. The leak should be fixed in g-i >= 1.76.2:
-# https://gitlab.gnome.org/GNOME/gobject-introspection/-/merge_requests/411
-if get_option('b_sanitize') != 'none' and \
-   gir.version().version_compare('<=1.76.1') and \
-   glib.version().version_compare('>=2.76')
-  error('MESON_SKIP_TEST gobject-introspection >=1.76.2 is required with address sanitizer.')
-endif
 
 # Test that static deps don't error out when static libraries aren't found
 glib_static = dependency('glib-2.0', static : true)
 
 subdir('resources-data')
 subdir('resources')
-subdir('gir')
 subdir('schemas')
-subdir('gdbus')
 subdir('mkenums')
 subdir('genmarshal')
